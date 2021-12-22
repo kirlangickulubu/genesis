@@ -1,0 +1,141 @@
+https://www.tutorialspoint.com/deep_learning_with_keras/deep_learning_with_keras_evaluating_model_performance.htm
+https://www.tutorialspoint.com/deep_learning_with_keras/deep_learning_with_keras_compiling_the_model.htm
+https://machinelearningmastery.com/object-recognition-convolutional-neural-networks-keras-deep-learning-library/
+https://colab.research.google.com/github/TheIndianCoder/Choose-the-best-Optimization-Algorithm-in-keras/blob/master/main.ipynb
+https://www.analyticsvidhya.com/blog/2020/10/create-image-classification-model-python-keras/
+https://www.kaggle.com/kmkarakaya/multi-label-model-evaluation
+https://www.pyimagesearch.com/2018/05/07/multi-label-classification-with-keras/
+
+../resim/kus/orji//122392.jpg
+../resim/kus/ozel/122392.jpg
+
+../resim/kus/ozel/58530.jpg
+
+https://www.trakel.org/kelebekler/?fsx=2fsdl5@d
+https://www.trakel.org/kelebekler/?fsx=2fsdl5%40d&sc=Acem+%C3%87okg%C3%B6zl%C3%BCs%C3%BC&sc_1=0&sc_2=4&sc_3=&Submit=Listele
+https://www.trakel.org/kelebekler/?fsx=2fsdl5%40d&sc=Acem+G%C3%BCzelesmeri&sc_1=0&sc_2=4&sc_3=&Submit=Listele
+https://www.trakel.org/kelebekler/?fsx=2fsdl5%40d&sc=Afrika+Babul+Mavisi&sc_1=0&sc_2=4&sc_3=&Submit=Listele
+
+
+//Kelebek Türlerinin Dosyaya kaydedilmesi
+
+            // From Web
+            var url = "https://www.trakel.org/kelebekler/?fsx=2fsdl5@d";
+            var web = new HtmlWeb();
+            var doc = web.Load(url);
+
+            string filePath = Directory.GetCurrentDirectory() + "\\" + "kelebektur.txt";
+            StreamWriter writer = new StreamWriter(filePath);
+
+            var nodeValue =  doc.DocumentNode.SelectNodes("//select[@name='sc']/option");
+            foreach(HtmlNode value in nodeValue)
+            {
+                string option = value.InnerText;
+                writer.Write(option + System.Environment.NewLine);
+            }
+            writer.Close();
+
+            Console.WriteLine("Bitti");
+
+//Kelebek detay linklerinin dosyaya kaydedilmesi
+            string writeFile = Directory.GetCurrentDirectory() + "\\" + "kelebekdetay.txt";
+            StreamWriter writer = new StreamWriter(writeFile);
+
+            string filePath = Directory.GetCurrentDirectory() + "\\" + "kelebektur.txt";
+            var enumLines = File.ReadLines(filePath, Encoding.UTF8);
+
+            int turKodu = 1;
+            int page = 0;
+            foreach (var line in enumLines)
+            {
+                page = 1;
+                while (page > 0)
+                {
+                    string url = "https://www.trakel.org/kelebekler/?fsx=2fsdl5%40d&sc=" + HttpUtility.UrlEncode(line) + "&sc_1=0&sc_2=4&sc_3=&g=" + page + "&Submit=Listele";
+                    HtmlDocument doc = getHTML(url);
+                    var detay = doc.DocumentNode.SelectNodes("//td[@class='detay']");
+                    if (detay != null)
+                    {
+                        page--;
+                        break;
+                    }
+
+                    //Toplam resim sayısı 
+                    var toplamResimNode = doc.DocumentNode.SelectNodes("//td/b");
+                    string strToplam = toplamResimNode[0].InnerText;
+
+                    //Resim url adresleri çekiliyor
+                    var picLinks = doc.DocumentNode.SelectNodes("//div[@class='HDGosterisi']/a[@href]");
+                    var picSrcs = doc.DocumentNode.SelectNodes("//div[@class='HDGosterisi']/a/img[@src]");
+                    for (int i = 0; i < picLinks.Count; i++)
+                    {
+                        string hrefValue = picLinks[i].GetAttributeValue("href", string.Empty);
+                        string src = picSrcs[i].GetAttributeValue("src", string.Empty);
+                        writer.Write(turKodu + ";" + line + ";" + strToplam + ";" + hrefValue + ";" + src + System.Environment.NewLine);
+                    }
+
+                    page++;
+                }
+
+                Console.WriteLine(turKodu + ":" + line + ":" + page);
+                turKodu++;
+            }
+
+            writer.Close();
+            Console.WriteLine("Bitti");
+
+
+
+//Tüm resimlerin çekilmesi
+            string filePath = Directory.GetCurrentDirectory() + "\\" + "kelebekdetay.txt";
+            var enumLines = File.ReadLines(filePath, Encoding.UTF8);
+            int lineCount = enumLines.Count();
+
+            string writeFile = Directory.GetCurrentDirectory() + "\\" + "kelebekfull.txt";
+            StreamWriter writer = new StreamWriter(writeFile);
+            StreamReader  sr = new StreamReader(filePath, Encoding.UTF8);
+
+            string line = "";
+            int sayac = 1;
+            while ((line = sr.ReadLine()) != null)
+            {
+                string[] temp1 = line.Split(";");
+                int turKodu = Convert.ToInt32(temp1[0]);
+                string turAdi = temp1[1];
+                string url = temp1[3];
+                string img = temp1[4];
+
+                //Detay yükleniyor
+                HtmlDocument doc = getHTML(url);
+                var turNode = doc.DocumentNode.SelectNodes("//div[@class='kisimBaslikYesil']");
+                string turNodeDetail = turNode[0].InnerText;
+                turNodeDetail = turNodeDetail.Replace("&nbsp;", "");
+                turNodeDetail = turNodeDetail.Replace("&raquo; ", ";");
+
+                string[] temp2 = turNodeDetail.Split(";");
+                string turAdiLatin = (temp2[1].Trim().Length == 0 ? "null" : temp2[1].Trim());
+                string turAdiEn = (temp2[2].Trim().Length == 0 ? "null" : temp2[2].Trim());
+                string klasorAdi = replaceDirectory(turAdi);
+
+                string directoryPath = Directory.GetCurrentDirectory() + "\\" + klasorAdi;
+                if ( !Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                //Resim kaydediliyor
+                img = img.Replace("../resim/kus/ozel/", "");
+                string picUrl = "https://www.trakel.org/resim/kus/orji/" + img;
+                System.Drawing.Image image = DownloadImageFromUrl(picUrl.Trim());
+                string fileName = System.IO.Path.Combine(directoryPath, img);
+
+                string fileAbsolutePath = fileName.Replace(Directory.GetCurrentDirectory() + "\\", "");
+                writer.Write(turKodu + ";" + temp1[1] + ";" + turAdiLatin + ";" + turAdiEn + ";" + fileAbsolutePath + System.Environment.NewLine); ;
+                image.Save(fileName);
+
+                Console.Write("\r{0}/{1} resim işlendi", sayac, lineCount);
+                sayac++;
+            }
+
+            writer.Close();
+            sr.Close();
