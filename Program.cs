@@ -15,7 +15,7 @@ namespace ConsoleKelebek
     {
         static void Main(string[] args)
         {
-            //Tüm resimlerin çekilmesi işlemi nasılsa
+            //Tüm resimlerin çekilmesi işlemi
             string filePath = Directory.GetCurrentDirectory() + "\\" + "kelebekdeta.txt";
             var enumLines = File.ReadLines(filePath, Encoding.UTF8);
             int lineCount = enumLines.Count();
